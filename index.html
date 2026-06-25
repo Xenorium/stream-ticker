@@ -21,7 +21,6 @@ html,body{
 }
 
 #bar{
-
     position:absolute;
     left:0;
     right:0;
@@ -29,7 +28,7 @@ html,body{
 
     height:74px;
 
-    display:flex;
+    overflow:hidden;
 
     background:
         linear-gradient(180deg,var(--bg1),var(--bg2));
@@ -39,43 +38,16 @@ html,body{
     box-shadow:
         0 -6px 24px rgba(0,0,0,.45),
         inset 0 1px rgba(255,255,255,.08);
-
-}
-
-#live{
-
-    width:160px;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    font-size:30px;
-    font-weight:900;
-    letter-spacing:2px;
-
-    color:white;
-
-    background:
-        linear-gradient(135deg,#ff0040,#a00020);
-
-    box-shadow:
-        0 0 18px rgba(255,0,80,.45);
-
-    flex-shrink:0;
-
 }
 
 #viewport{
-
-    flex:1;
+    width:100%;
+    height:100%;
     overflow:hidden;
     position:relative;
-
 }
 
 #track{
-
     position:absolute;
     left:0;
     top:50%;
@@ -86,9 +58,7 @@ html,body{
     transform:translate3d(0,-50%,0);
 
     will-change:transform;
-
 }
-
 .strip{
 
     display:flex;
@@ -139,16 +109,14 @@ html,body{
 
 <div id="bar">
 
-    <div id="live">
-        LIVE
-    </div>
-
     <div id="viewport">
         <div id="track"></div>
     </div>
 
 </div>
 
+</body>
+    
 <script>
 
 const p=new URLSearchParams(location.search);
