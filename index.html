@@ -1,41 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 html, body {
-  margin: 0;
-  overflow: hidden;
-  background: transparent;
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
 }
 
 .ticker-wrap {
-  width: 100vw;
-  overflow: hidden;
-  white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .ticker {
-  display: inline-block;
-  padding-left: 100%;
-  animation: scroll 20s linear infinite;
-  font-family: Arial, sans-serif;
-  font-size: 42px;
-  color: white;
-  font-weight: bold;
+    display: flex;
+    width: max-content;
+    animation: ticker 20s linear infinite;
 }
 
-@keyframes scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+.item {
+    display: inline-block;
+    padding-right: 80px;
+    font-family: Arial, sans-serif;
+    font-size: 42px;
+    font-weight: bold;
+    color: white;
+}
+
+@keyframes ticker {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
 }
 </style>
 </head>
+
 <body>
+
 <div class="ticker-wrap">
-  <div class="ticker">
-    🔥 LIVE NOW • Follow for more • !discord • New videos every week • 🔥 LIVE NOW • Follow for more • !discord • New videos every week •
-  </div>
+    <div class="ticker">
+        <div class="item">
+            🔥 LIVE NOW • Follow • !discord • Subscribe •
+        </div>
+
+        <div class="item">
+            🔥 LIVE NOW • Follow • !discord • Subscribe •
+        </div>
+    </div>
 </div>
+
 </body>
 </html>
