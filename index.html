@@ -2,35 +2,90 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
+
 html,body{
     margin:0;
     overflow:hidden;
     background:transparent;
 }
 
-#viewport{
-    width:100vw;
+:root{
+    --barHeight:72px;
+    --textColor:#ffffff;
+    --accent:#00E5FF;
+}
+
+#bar{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+
+    height:var(--barHeight);
+
+    background:
+        linear-gradient(180deg,
+        rgba(40,40,45,.92),
+        rgba(10,10,12,.96));
+
+    border-top:4px solid var(--accent);
+
+    box-shadow:
+        0 -4px 20px rgba(0,0,0,.45),
+        inset 0 1px rgba(255,255,255,.08);
+
     overflow:hidden;
-    white-space:nowrap;
 }
 
 #ticker{
-    display:inline-block;
+
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+
+    white-space:nowrap;
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:.8px;
+
+    color:var(--textColor);
+
+    text-shadow:
+        0 0 6px rgba(255,255,255,.35),
+        0 2px 6px rgba(0,0,0,.6);
+
     will-change:transform;
-    font-family:Arial,Helvetica,sans-serif;
-    font-size:42px;
-    font-weight:bold;
-    color:white;
+
 }
+
+.live{
+
+    color:var(--accent);
+
+}
+
+.dot{
+
+    color:#666;
+    padding:0 18px;
+
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="viewport">
+<div id="bar">
     <div id="ticker"></div>
 </div>
 
@@ -38,46 +93,52 @@ html,body{
 
 const params = new URLSearchParams(location.search);
 
-const text =
-    params.get("text") ||
-    "🔥 LIVE NOW • Follow • !discord • Subscribe • ";
+const speed = Number(params.get("speed")) || 2;
 
-const ticker = document.getElementById("ticker");
+const accent = params.get("accent") || "#00E5FF";
 
-// Build one long string
-let repeated = "";
-for(let i=0;i<30;i++){
-    repeated += text;
-}
+document.documentElement.style.setProperty("--accent",accent);
 
-ticker.textContent = repeated;
+const message = params.get("text") ||
 
-// Wait for the browser to calculate the width
-setTimeout(() => {
+"<span class='live'>LIVE</span><span class='dot'>●</span>FOLLOW @YOURNAME<span class='dot'>●</span>NEW VIDEOS EVERY WEEK<span class='dot'>●</span>TYPE !DISCORD<span class='dot'>●</span>";
 
-    // Width of ONE message
-    const measure = document.createElement("span");
-    measure.style.visibility = "hidden";
-    measure.style.position = "absolute";
-    measure.style.font = getComputedStyle(ticker).font;
-    measure.textContent = text;
+const ticker=document.getElementById("ticker");
+
+let html="";
+
+for(let i=0;i<30;i++)
+    html+=message;
+
+ticker.innerHTML=html;
+
+setTimeout(()=>{
+
+    const measure=document.createElement("div");
+
+    measure.style.position="absolute";
+    measure.style.visibility="hidden";
+    measure.innerHTML=message;
+
+    measure.style.font=ticker.style.font;
+
     document.body.appendChild(measure);
 
-    const loopWidth = measure.offsetWidth;
-    document.body.removeChild(measure);
+    const loopWidth=measure.offsetWidth;
 
-    let x = 0;
-    const speed = 2;
+    measure.remove();
 
-    setInterval(() => {
+    let x=0;
 
-        x -= speed;
+    setInterval(()=>{
 
-        if (-x >= loopWidth) {
-            x = 0;
-        }
+        x-=speed;
 
-        ticker.style.transform = `translateX(${x}px)`;
+        if(-x>=loopWidth)
+            x=0;
+
+        ticker.style.transform=
+            `translate(${x}px,-50%)`;
 
     },16);
 
