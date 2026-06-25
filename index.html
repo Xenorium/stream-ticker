@@ -10,139 +10,220 @@ html,body{
     margin:0;
     overflow:hidden;
     background:transparent;
+    font-family:Segoe UI,Arial,sans-serif;
 }
 
 :root{
-    --barHeight:72px;
-    --textColor:#ffffff;
     --accent:#00E5FF;
+    --bg1:#1f2228;
+    --bg2:#0b0c0f;
+    --text:#ffffff;
 }
 
 #bar{
+
     position:absolute;
     left:0;
     right:0;
     bottom:0;
 
-    height:var(--barHeight);
+    height:74px;
+
+    display:flex;
 
     background:
-        linear-gradient(180deg,
-        rgba(40,40,45,.92),
-        rgba(10,10,12,.96));
+        linear-gradient(180deg,var(--bg1),var(--bg2));
 
     border-top:4px solid var(--accent);
 
     box-shadow:
-        0 -4px 20px rgba(0,0,0,.45),
+        0 -6px 24px rgba(0,0,0,.45),
         inset 0 1px rgba(255,255,255,.08);
 
-    overflow:hidden;
 }
 
-#ticker{
+#live{
+
+    width:160px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:2px;
+
+    color:white;
+
+    background:
+        linear-gradient(135deg,#ff0040,#a00020);
+
+    box-shadow:
+        0 0 18px rgba(255,0,80,.45);
+
+    flex-shrink:0;
+
+}
+
+#viewport{
+
+    flex:1;
+    overflow:hidden;
+    position:relative;
+
+}
+
+#track{
 
     position:absolute;
+    left:0;
     top:50%;
-    transform:translateY(-50%);
 
-    white-space:nowrap;
+    display:flex;
+    align-items:center;
 
-    font-family:
-        "Segoe UI",
-        Arial,
-        sans-serif;
-
-    font-size:34px;
-    font-weight:800;
-    letter-spacing:.8px;
-
-    color:var(--textColor);
-
-    text-shadow:
-        0 0 6px rgba(255,255,255,.35),
-        0 2px 6px rgba(0,0,0,.6);
+    transform:translate3d(0,-50%,0);
 
     will-change:transform;
 
 }
 
-.live{
+.strip{
 
-    color:var(--accent);
+    display:flex;
+    flex-shrink:0;
+
+}
+
+.item{
+
+    display:flex;
+    align-items:center;
+
+    color:var(--text);
+
+    font-size:34px;
+    font-weight:800;
+
+    letter-spacing:.6px;
+
+    margin-right:70px;
+
+    text-shadow:
+        0 2px 5px rgba(0,0,0,.6);
 
 }
 
 .dot{
 
-    color:#666;
-    padding:0 18px;
+    color:var(--accent);
+
+    margin:0 18px;
+
+    font-size:22px;
+
+}
+
+.highlight{
+
+    color:var(--accent);
 
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div id="bar">
-    <div id="ticker"></div>
+
+    <div id="live">
+        LIVE
+    </div>
+
+    <div id="viewport">
+        <div id="track"></div>
+    </div>
+
 </div>
 
 <script>
 
-const params = new URLSearchParams(location.search);
+const p=new URLSearchParams(location.search);
 
-const speed = Number(params.get("speed")) || 2;
+const SPEED=Number(p.get("speed"))||110; // pixels/sec
 
-const accent = params.get("accent") || "#00E5FF";
+const ACCENT=p.get("accent")||"#00E5FF";
+const BG1=p.get("bg1")||"#1f2228";
+const BG2=p.get("bg2")||"#0b0c0f";
 
-document.documentElement.style.setProperty("--accent",accent);
+document.documentElement.style.setProperty("--accent",ACCENT);
+document.documentElement.style.setProperty("--bg1",BG1);
+document.documentElement.style.setProperty("--bg2",BG2);
 
-const message = params.get("text") ||
+const defaultMessage=`
+<div class="item">
+<span class="highlight">FOLLOW @YOURNAME</span>
+<span class="dot">●</span>
+NEW VIDEOS EVERY WEEK
+<span class="dot">●</span>
+TYPE !DISCORD
+<span class="dot">●</span>
+NEXT GOAL: 5,000 FOLLOWERS
+<span class="dot">●</span>
+THANKS FOR WATCHING
+</div>
+`;
 
-"<span class='live'>LIVE</span><span class='dot'>●</span>FOLLOW @YOURNAME<span class='dot'>●</span>NEW VIDEOS EVERY WEEK<span class='dot'>●</span>TYPE !DISCORD<span class='dot'>●</span>";
+const html=p.get("text")||defaultMessage;
 
-const ticker=document.getElementById("ticker");
+const track=document.getElementById("track");
 
-let html="";
+function makeStrip(){
 
-for(let i=0;i<30;i++)
-    html+=message;
+    const s=document.createElement("div");
+    s.className="strip";
 
-ticker.innerHTML=html;
+    for(let i=0;i<6;i++)
+        s.innerHTML+=html;
 
-setTimeout(()=>{
+    return s;
 
-    const measure=document.createElement("div");
+}
 
-    measure.style.position="absolute";
-    measure.style.visibility="hidden";
-    measure.innerHTML=message;
+track.appendChild(makeStrip());
+track.appendChild(makeStrip());
 
-    measure.style.font=ticker.style.font;
+let x=0;
+let last=performance.now();
 
-    document.body.appendChild(measure);
+function loop(now){
 
-    const loopWidth=measure.offsetWidth;
+    const dt=(now-last)/1000;
+    last=now;
 
-    measure.remove();
+    x-=SPEED*dt;
 
-    let x=0;
+    const first=track.firstElementChild;
 
-    setInterval(()=>{
+    if(-x>=first.offsetWidth){
 
-        x-=speed;
+        x+=first.offsetWidth;
 
-        if(-x>=loopWidth)
-            x=0;
+        track.appendChild(first);
 
-        ticker.style.transform=
-            `translate(${x}px,-50%)`;
+    }
 
-    },16);
+    track.style.transform=
+        `translate3d(${x}px,-50%,0)`;
 
-},100);
+    requestAnimationFrame(loop);
+
+}
+
+requestAnimationFrame(loop);
 
 </script>
 
