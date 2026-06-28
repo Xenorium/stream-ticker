@@ -1,206 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
-
-html,
-body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:transparent;
-    font-family:Segoe UI, Arial, sans-serif;
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: Segoe UI, Arial, sans-serif;
 }
 
-:root{
-    --accent:#00E5FF;
-    --bg1:#1f2228;
-    --bg2:#0b0c0f;
-    --text:#ffffff;
+:root {
+    --accent: #00E5FF;
+    --bg1: #1f2228;
+    --bg2: #0b0c0f;
+    --text: #ffffff;
 }
 
-#bar{
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
+#bar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
 
-    width:100%;
-    height:clamp(48px,3vw,80px);
+    width: 100vw;
 
-    overflow:hidden;
+    height: clamp(48px, 4vh, 80px);
 
-    background:
-        linear-gradient(180deg,var(--bg1),var(--bg2));
+    display: flex;
+    align-items: center;
 
-   border-top:max(2px,.2vw) solid var(--accent);
+    overflow: hidden;
+
+    background: linear-gradient(180deg, var(--bg1), var(--bg2));
+    border-top: max(2px, 0.2vw) solid var(--accent);
 
     box-shadow:
         0 -6px 24px rgba(0,0,0,.45),
         inset 0 1px rgba(255,255,255,.08);
 }
 
-#viewport{
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    position:relative;
+#track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    will-change: transform;
 }
 
-#track{
-    position:absolute;
-    left:0;
-    top:50%;
+.item {
+    display: flex;
+    align-items: center;
 
-    display:flex;
-    align-items:center;
+    font-size: clamp(20px, 1.6vw, 40px);
+    font-weight: 800;
 
-    transform:translate3d(0,-50%,0);
+    color: var(--text);
+    letter-spacing: 0.5px;
 
-    will-change:transform;
-}
-.strip{
+    margin-right: clamp(40px, 3vw, 90px);
 
-    display:flex;
-    flex-shrink:0;
-
+    text-shadow: 0 2px 5px rgba(0,0,0,.6);
 }
 
-.item{
-
-    display:flex;
-    align-items:center;
-
-    color:var(--text);
-
-    font-size:clamp(22px,1.6vw,42px);
-    font-weight:800;
-
-    letter-spacing:.6px;
-
-    margin-right:clamp(40px,2vw,80px);
-
-    text-shadow:
-        0 2px 5px rgba(0,0,0,.6);
-
+.dot {
+    color: var(--accent);
+    margin: 0 14px;
 }
 
-.dot{
-
-    color:var(--accent);
-
-    margin:0 clamp(10px,0.8vw,22px);
-
-    font-size:22px;
-
+.highlight {
+    color: var(--accent);
 }
-
-.highlight{
-
-    color:var(--accent);
-
-}
-
 </style>
-
 </head>
 
 <body>
 
 <div id="bar">
-
-    <div id="viewport">
-        <div id="track"></div>
-    </div>
-
+    <div id="track"></div>
 </div>
 
-</body>
-    
 <script>
+const p = new URLSearchParams(location.search);
 
-const p=new URLSearchParams(location.search);
+const SPEED = Number(p.get("speed")) || 80;
+const ACCENT = p.get("accent") || "#00E5FF";
+const BG1 = p.get("bg1") || "#1f2228";
+const BG2 = p.get("bg2") || "#0b0c0f";
 
-const SPEED=Number(p.get("speed"))||60; // pixels/sec
+document.documentElement.style.setProperty("--accent", ACCENT);
+document.documentElement.style.setProperty("--bg1", BG1);
+document.documentElement.style.setProperty("--bg2", BG2);
 
-const ACCENT=p.get("accent")||"#00E5FF";
-const BG1=p.get("bg1")||"#1f2228";
-const BG2=p.get("bg2")||"#0b0c0f";
-
-document.documentElement.style.setProperty("--accent",ACCENT);
-document.documentElement.style.setProperty("--bg1",BG1);
-document.documentElement.style.setProperty("--bg2",BG2);
-
-const defaultMessage=`
-<div class="item">
+const defaultMessage = `
+<span class="item">
 <span class="highlight">FOLLOW @klkgennn on X, IG, TikTok</span>
-<span class="dot">●</span>
-CONTROL ME 🎮🍑💦🫦 ( 121 TOKENS TO SLIP TOY INSIDE AND START THE SHOW )
 <span class="dot">●</span>
 NEW VIDEOS EVERY WEEK
 <span class="dot">●</span>
-TYPE /menus /menu 1 /menu2 /menu3
+TYPE /menu /menus
 <span class="dot">●</span>
 NEXT GOAL: 100,000 FOLLOWERS
 <span class="dot">●</span>
-CATCH ME ON SNAP AND OF 😈
-<span class="dot">●</span>
 THANKS FOR WATCHING
-</div>
+</span>
 `;
 
-const html=p.get("text")||defaultMessage;
+const html = p.get("text") || defaultMessage;
 
-const track=document.getElementById("track");
+const track = document.getElementById("track");
 
-function makeStrip(){
+track.innerHTML = html;
 
-    const s=document.createElement("div");
-    s.className="strip";
+let x = 0;
+let last = performance.now();
+let contentWidth = 0;
 
-    for(let i=0;i<6;i++)
-        s.innerHTML+=html;
-
-    return s;
-
+// measure real width after render
+function measure() {
+    contentWidth = track.offsetWidth;
 }
 
-track.appendChild(makeStrip());
-track.appendChild(makeStrip());
+// clone content until it's wider than screen (guarantees full coverage)
+function fillTrack() {
+    const screenWidth = window.innerWidth;
+    while (track.offsetWidth < screenWidth * 2) {
+        track.innerHTML += html;
+    }
+}
 
-let x=0;
-let last=performance.now();
+function reset() {
+    track.innerHTML = html;
+    fillTrack();
+    measure();
+    x = 0;
+}
 
-function loop(now){
+function loop(now) {
+    const dt = (now - last) / 1000;
+    last = now;
 
-    const dt=(now-last)/1000;
-    last=now;
+    x -= SPEED * dt;
 
-    x-=SPEED*dt;
-
-    const first=track.firstElementChild;
-
-    if(-x>=first.offsetWidth){
-
-        x+=first.offsetWidth;
-
-        track.appendChild(first);
-
+    if (Math.abs(x) >= contentWidth / 2) {
+        x = 0;
     }
 
-    track.style.transform=
-        `translate3d(${x}px,-50%,0)`;
+    track.style.transform = `translate3d(${x}px,0,0)`;
 
     requestAnimationFrame(loop);
-
 }
 
-requestAnimationFrame(loop);
+window.addEventListener("resize", reset);
+window.addEventListener("orientationchange", reset);
 
+reset();
+requestAnimationFrame(loop);
 </script>
 
 </body>
