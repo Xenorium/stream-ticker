@@ -6,13 +6,14 @@
 
 <style>
 
-html,body{
+html,
+body{
     margin:0;
-    width:3840px;
-    height:2160px;
+    width:100%;
+    height:100%;
     overflow:hidden;
     background:transparent;
-    font-family:Segoe UI,Arial,sans-serif;
+    font-family:Segoe UI, Arial, sans-serif;
 }
 
 :root{
@@ -23,20 +24,20 @@ html,body{
 }
 
 #bar{
-    position:absolute;
+    position:fixed;
     left:0;
     right:0;
     bottom:0;
 
-    width:3840px;
-    height:64px;
+    width:100%;
+    height:clamp(48px,3vw,80px);
 
     overflow:hidden;
 
     background:
         linear-gradient(180deg,var(--bg1),var(--bg2));
 
-    border-top:4px solid var(--accent);
+   border-top:max(2px,.2vw) solid var(--accent);
 
     box-shadow:
         0 -6px 24px rgba(0,0,0,.45),
@@ -76,12 +77,12 @@ html,body{
 
     color:var(--text);
 
-    font-size:38px;
+    font-size:clamp(22px,1.6vw,42px);
     font-weight:800;
 
     letter-spacing:.6px;
 
-    margin-right:70px;
+    margin-right:clamp(40px,2vw,80px);
 
     text-shadow:
         0 2px 5px rgba(0,0,0,.6);
@@ -92,7 +93,7 @@ html,body{
 
     color:var(--accent);
 
-    margin:0 18px;
+    margin:0 clamp(10px,0.8vw,22px);
 
     font-size:22px;
 
