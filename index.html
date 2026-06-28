@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Canvas Ticker v3</title>
 
 <style>
 html, body {
@@ -12,152 +13,107 @@ html, body {
     height: 100vh;
     overflow: hidden;
     background: transparent;
-    font-family: Segoe UI, Arial, sans-serif;
 }
-
-:root {
-    --accent: #00E5FF;
-    --bg1: #1f2228;
-    --bg2: #0b0c0f;
-    --text: #ffffff;
-}
-
-#bar {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-
-    width: 100vw;
-
-    height: clamp(48px, 4vh, 80px);
-
-    display: flex;
-    align-items: center;
-
-    overflow: hidden;
-
-    background: linear-gradient(180deg, var(--bg1), var(--bg2));
-    border-top: max(2px, 0.2vw) solid var(--accent);
-
-    box-shadow:
-        0 -6px 24px rgba(0,0,0,.45),
-        inset 0 1px rgba(255,255,255,.08);
-}
-
-#track {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    will-change: transform;
-}
-
-.item {
-    display: flex;
-    align-items: center;
-
-    font-size: clamp(20px, 1.6vw, 40px);
-    font-weight: 800;
-
-    color: var(--text);
-    letter-spacing: 0.5px;
-
-    margin-right: clamp(40px, 3vw, 90px);
-
-    text-shadow: 0 2px 5px rgba(0,0,0,.6);
-}
-
-.dot {
-    color: var(--accent);
-    margin: 0 14px;
-}
-
-.highlight {
-    color: var(--accent);
+canvas {
+    display: block;
 }
 </style>
 </head>
 
 <body>
 
-<div id="bar">
-    <div id="track"></div>
-</div>
+<canvas id="ticker"></canvas>
 
 <script>
 const p = new URLSearchParams(location.search);
 
-const SPEED = Number(p.get("speed")) || 80;
+const SPEED = Number(p.get("speed")) || 180; // px/sec
 const ACCENT = p.get("accent") || "#00E5FF";
 const BG1 = p.get("bg1") || "#1f2228";
 const BG2 = p.get("bg2") || "#0b0c0f";
 
-document.documentElement.style.setProperty("--accent", ACCENT);
-document.documentElement.style.setProperty("--bg1", BG1);
-document.documentElement.style.setProperty("--bg2", BG2);
+const canvas = document.getElementById("ticker");
+const ctx = canvas.getContext("2d");
 
-const defaultMessage = `
-<span class="item">
-<span class="highlight">FOLLOW @klkgennn on X, IG, TikTok</span>
-<span class="dot">●</span>
-NEW VIDEOS EVERY WEEK
-<span class="dot">●</span>
-TYPE /menu /menus
-<span class="dot">●</span>
-NEXT GOAL: 100,000 FOLLOWERS
-<span class="dot">●</span>
-THANKS FOR WATCHING
-</span>
-`;
+let W = 0, H = 0, DPR = 1;
 
-const html = p.get("text") || defaultMessage;
+function resize() {
+    DPR = Math.max(1, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
 
-const track = document.getElementById("track");
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
 
-track.innerHTML = html;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener("resize", resize);
+resize();
 
+// TEXT
+const defaultText =
+"FOLLOW @klkgennn • NEW VIDEOS WEEKLY • TYPE /menu • NEXT GOAL: 100K FOLLOWERS • THANK YOU FOR WATCHING";
+
+const text = p.get("text") || defaultText;
+
+const fontSize = () => Math.max(18, W * 0.03);
 let x = 0;
-let last = performance.now();
-let contentWidth = 0;
 
-// measure real width after render
-function measure() {
-    contentWidth = track.offsetWidth;
+function drawBackground() {
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, BG1);
+    grad.addColorStop(1, BG2);
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // top accent line
+    ctx.fillStyle = ACCENT;
+    ctx.fillRect(0, 0, W, Math.max(2, W * 0.002));
 }
 
-// clone content until it's wider than screen (guarantees full coverage)
-function fillTrack() {
-    const screenWidth = window.innerWidth;
-    while (track.offsetWidth < screenWidth * 2) {
-        track.innerHTML += html;
+function drawTextLoop(y, xPos) {
+    ctx.font = `800 ${fontSize()}px Segoe UI, Arial`;
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "middle";
+
+    const spacing = fontSize() * 1.2;
+    const fullText = text + "   •   ";
+
+    let offsetX = xPos;
+
+    // draw enough copies to fill screen
+    while (offsetX < W + 500) {
+        ctx.fillText(fullText, offsetX, y);
+        offsetX += ctx.measureText(fullText).width + spacing;
     }
+
+    return ctx.measureText(fullText).width + spacing;
 }
 
-function reset() {
-    track.innerHTML = html;
-    fillTrack();
-    measure();
-    x = 0;
-}
+let last = performance.now();
 
 function loop(now) {
     const dt = (now - last) / 1000;
     last = now;
 
+    drawBackground();
+
+    const y = H / 2;
+
+    const step = drawTextLoop(y, x);
+
     x -= SPEED * dt;
 
-    if (Math.abs(x) >= contentWidth / 2) {
+    if (Math.abs(x) > step) {
         x = 0;
     }
-
-    track.style.transform = `translate3d(${x}px,0,0)`;
 
     requestAnimationFrame(loop);
 }
 
-window.addEventListener("resize", reset);
-window.addEventListener("orientationchange", reset);
-
-reset();
 requestAnimationFrame(loop);
 </script>
 
