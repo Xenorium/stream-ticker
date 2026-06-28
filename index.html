@@ -1,120 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Canvas Ticker v3</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: transparent;
+
+html,body{
+    margin:0;
+    width:3840px;
+    height:2160px;
+    overflow:hidden;
+    background:transparent;
+    font-family:Segoe UI,Arial,sans-serif;
 }
-canvas {
-    display: block;
+
+:root{
+    --accent:#00E5FF;
+    --bg1:#1f2228;
+    --bg2:#0b0c0f;
+    --text:#ffffff;
 }
+
+#bar{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+
+    width:2868px;
+    height:64px;
+
+    overflow:hidden;
+
+    background:
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+
+    border-top:4px solid var(--accent);
+
+    box-shadow:
+        0 -6px 24px rgba(0,0,0,.45),
+        inset 0 1px rgba(255,255,255,.08);
+}
+
+#viewport{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    position:relative;
+}
+
+#track{
+    position:absolute;
+    left:0;
+    top:50%;
+
+    display:flex;
+    align-items:center;
+
+    transform:translate3d(0,-50%,0);
+
+    will-change:transform;
+}
+.strip{
+
+    display:flex;
+    flex-shrink:0;
+
+}
+
+.item{
+
+    display:flex;
+    align-items:center;
+
+    color:var(--text);
+
+    font-size:38px;
+    font-weight:800;
+
+    letter-spacing:.6px;
+
+    margin-right:70px;
+
+    text-shadow:
+        0 2px 5px rgba(0,0,0,.6);
+
+}
+
+.dot{
+
+    color:var(--accent);
+
+    margin:0 18px;
+
+    font-size:22px;
+
+}
+
+.highlight{
+
+    color:var(--accent);
+
+}
+
 </style>
+
 </head>
 
 <body>
 
-<canvas id="ticker"></canvas>
+<div id="bar">
 
+    <div id="viewport">
+        <div id="track"></div>
+    </div>
+
+</div>
+
+</body>
+    
 <script>
-const p = new URLSearchParams(location.search);
 
-const SPEED = Number(p.get("speed")) || 180; // px/sec
-const ACCENT = p.get("accent") || "#00E5FF";
-const BG1 = p.get("bg1") || "#1f2228";
-const BG2 = p.get("bg2") || "#0b0c0f";
+const p=new URLSearchParams(location.search);
 
-const canvas = document.getElementById("ticker");
-const ctx = canvas.getContext("2d");
+const SPEED=Number(p.get("speed"))||60; // pixels/sec
 
-let W = 0, H = 0, DPR = 1;
+const ACCENT=p.get("accent")||"#00E5FF";
+const BG1=p.get("bg1")||"#1f2228";
+const BG2=p.get("bg2")||"#0b0c0f";
 
-function resize() {
-    DPR = Math.max(1, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
+document.documentElement.style.setProperty("--accent",ACCENT);
+document.documentElement.style.setProperty("--bg1",BG1);
+document.documentElement.style.setProperty("--bg2",BG2);
 
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
+const defaultMessage=`
+<div class="item">
+<span class="highlight">FOLLOW @klkgennn on X, IG, TikTok</span>
+<span class="dot">●</span>
+CONTROL ME 🎮🍑💦🫦 ( 121 TOKENS TO SLIP TOY INSIDE AND START THE SHOW )
+<span class="dot">●</span>
+NEW VIDEOS EVERY WEEK
+<span class="dot">●</span>
+TYPE /menus /menu 1 /menu2 /menu3
+<span class="dot">●</span>
+NEXT GOAL: 100,000 FOLLOWERS
+<span class="dot">●</span>
+CATCH ME ON SNAP AND OF 😈
+<span class="dot">●</span>
+THANKS FOR WATCHING
+</div>
+`;
 
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-}
-window.addEventListener("resize", resize);
-resize();
+const html=p.get("text")||defaultMessage;
 
-// TEXT
-const defaultText =
-"FOLLOW @klkgennn • NEW VIDEOS WEEKLY • TYPE /menu • NEXT GOAL: 100K FOLLOWERS • THANK YOU FOR WATCHING";
+const track=document.getElementById("track");
 
-const text = p.get("text") || defaultText;
+function makeStrip(){
 
-const fontSize = () => Math.max(18, W * 0.03);
-let x = 0;
+    const s=document.createElement("div");
+    s.className="strip";
 
-function drawBackground() {
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, BG1);
-    grad.addColorStop(1, BG2);
+    for(let i=0;i<6;i++)
+        s.innerHTML+=html;
 
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    return s;
 
-    // top accent line
-    ctx.fillStyle = ACCENT;
-    ctx.fillRect(0, 0, W, Math.max(2, W * 0.002));
 }
 
-function drawTextLoop(y, xPos) {
-    ctx.font = `800 ${fontSize()}px Segoe UI, Arial`;
-    ctx.fillStyle = "#ffffff";
-    ctx.textBaseline = "middle";
+track.appendChild(makeStrip());
+track.appendChild(makeStrip());
 
-    const spacing = fontSize() * 1.2;
-    const fullText = text + "   •   ";
+let x=0;
+let last=performance.now();
 
-    let offsetX = xPos;
+function loop(now){
 
-    // draw enough copies to fill screen
-    while (offsetX < W + 500) {
-        ctx.fillText(fullText, offsetX, y);
-        offsetX += ctx.measureText(fullText).width + spacing;
+    const dt=(now-last)/1000;
+    last=now;
+
+    x-=SPEED*dt;
+
+    const first=track.firstElementChild;
+
+    if(-x>=first.offsetWidth){
+
+        x+=first.offsetWidth;
+
+        track.appendChild(first);
+
     }
 
-    return ctx.measureText(fullText).width + spacing;
-}
-
-let last = performance.now();
-
-function loop(now) {
-    const dt = (now - last) / 1000;
-    last = now;
-
-    drawBackground();
-
-    const y = H / 2;
-
-    const step = drawTextLoop(y, x);
-
-    x -= SPEED * dt;
-
-    if (Math.abs(x) > step) {
-        x = 0;
-    }
+    track.style.transform=
+        `translate3d(${x}px,-50%,0)`;
 
     requestAnimationFrame(loop);
+
 }
 
 requestAnimationFrame(loop);
+
 </script>
 
 </body>
